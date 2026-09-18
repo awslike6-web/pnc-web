@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PnC 연맹 스케줄 & 왕자의 전쟁 캘린더</title>
+  <title>PnC 연맹 스케줄 & 대형 이벤트 종합 관제탑</title>
   <style>
     :root {
-      --bg-primary: #0f172a;
+      --bg-primary: #0b1120;
       --bg-secondary: #1e293b;
       --bg-card: #273549;
       --bg-card-hover: #334155;
@@ -15,6 +15,7 @@
       --accent-purple: #c084fc;
       --accent-red: #f43f5e;
       --accent-green: #34d399;
+      --accent-emerald: #10b981;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
@@ -28,11 +29,11 @@
       background-color: var(--bg-primary);
       color: var(--text-main);
       line-height: 1.5;
-      padding-bottom: 50px;
+      padding-bottom: 60px;
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1060px;
       margin: 0 auto;
       padding: 16px;
     }
@@ -43,9 +44,8 @@
       border: 1px solid #3730a3;
       border-radius: 16px;
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       box-shadow: var(--shadow-md);
-      position: relative;
     }
 
     .header-top {
@@ -54,11 +54,11 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .title-area h1 {
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 800;
       color: #fbbf24;
       display: flex;
@@ -71,14 +71,15 @@
       margin-top: 2px;
     }
 
-    /* 시차 전환 컨트롤러 */
-    .tz-selector {
+    /* 시차 전환 컨트롤러 (간소화 + 수동 UTC 오프셋 + 로컬스토리지) */
+    .tz-control-wrapper {
       display: flex;
-      background: rgba(15, 23, 42, 0.8);
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid var(--border-color);
       border-radius: 30px;
-      padding: 3px;
-      gap: 2px;
+      padding: 4px 8px;
     }
     .tz-btn {
       background: transparent;
@@ -96,6 +97,62 @@
       color: #0f172a;
       box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
     }
+    .tz-custom-select {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* 날짜 네비게이션 바 (과거/미래 일정 탐색) */
+    .date-nav-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+    .date-nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .date-nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .date-nav-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--accent-gold);
+    }
+    .date-input {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      color: var(--accent-gold);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
 
     /* 실시간 상태 배지 바 */
     .live-status-bar {
@@ -103,28 +160,25 @@
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
-      padding-top: 10px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255,255,255,0.08);
       font-size: 0.82rem;
     }
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
+      gap: 5px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-weight: 700;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
     }
     .badge-ace { background: rgba(192, 132, 252, 0.2); color: #e9d5ff; border: 1px solid #a855f7; }
     .badge-nonace { background: rgba(56, 189, 248, 0.2); color: #bae6fd; border: 1px solid #0284c7; }
-    .badge-live { background: rgba(244, 63, 94, 0.2); color: #fecdd3; border: 1px solid #e11d48; animation: pulse 2s infinite; }
+    .badge-event { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid #d97706; }
+    .badge-dragon { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid #059669; }
+    .badge-prince { background: rgba(244, 63, 94, 0.2); color: #fecdd3; border: 1px solid #e11d48; }
     .badge-neutral { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid #475569; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
 
     /* 탭 메뉴 */
     .nav-tabs {
@@ -141,7 +195,7 @@
       color: var(--text-muted);
       font-size: 0.95rem;
       font-weight: 700;
-      padding: 8px 16px;
+      padding: 9px 16px;
       border-radius: 8px;
       cursor: pointer;
       display: flex;
@@ -166,7 +220,7 @@
     /* 주간 시간표 그리드 */
     .schedule-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: 14px;
     }
     .day-card {
@@ -196,26 +250,45 @@
       font-weight: 900;
       padding: 2px 8px;
       border-radius: 10px;
-      letter-spacing: 0.5px;
     }
 
     .day-header {
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .day-title-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 4px;
     }
     .day-title {
       font-size: 1.05rem;
       font-weight: 800;
       color: #f1f5f9;
     }
-    .daily-theme {
+    .day-date-sub {
       font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .daily-theme-box {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--accent-blue);
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    .daily-theme-title {
+      font-size: 0.82rem;
+      font-weight: 700;
       color: var(--accent-blue);
-      font-weight: 600;
+    }
+    .daily-consume-items {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      margin-top: 2px;
     }
 
     .event-item {
@@ -223,19 +296,19 @@
       align-items: flex-start;
       gap: 10px;
       background: var(--bg-card);
-      padding: 10px 12px;
+      padding: 9px 12px;
       border-radius: 8px;
       margin-bottom: 8px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
     }
     .event-item:last-child { margin-bottom: 0; }
     .event-time {
       font-family: monospace;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--accent-gold);
       white-space: nowrap;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.7);
       padding: 2px 6px;
       border-radius: 4px;
     }
@@ -253,15 +326,10 @@
       border-left: 4px solid var(--accent-red);
       background: linear-gradient(90deg, rgba(244, 63, 94, 0.15) 0%, var(--bg-card) 100%);
     }
-    .highlight-hf {
-      border-left: 4px solid var(--accent-green);
-    }
-    .highlight-gate {
-      border-left: 4px solid var(--accent-purple);
-    }
-    .highlight-party {
-      border-left: 4px solid var(--accent-gold);
-    }
+    .highlight-hf { border-left: 4px solid var(--accent-green); }
+    .highlight-gate { border-left: 4px solid var(--accent-purple); }
+    .highlight-party { border-left: 4px solid var(--accent-gold); }
+    .highlight-defence { border-left: 4px solid var(--accent-blue); }
 
     /* 공통 안내 배너 */
     .info-banner {
@@ -270,13 +338,44 @@
       border-radius: 12px;
       padding: 14px 18px;
       margin-top: 16px;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       color: var(--text-muted);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
     .info-banner strong { color: #e2e8f0; }
+
+    /* 카드 스타일 (왕자의 전쟁 / 전장 / 연맹이벤트) */
+    .guide-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .guide-card h3 {
+      font-size: 1.15rem;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .guide-rule-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+    .guide-rule-list li {
+      background: var(--bg-card);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 3px solid var(--accent-blue);
+    }
 
     /* 왕자의 전쟁 타임 슬롯 카드 */
     .slot-card {
@@ -292,15 +391,15 @@
       background: linear-gradient(180deg, rgba(192, 132, 252, 0.1) 0%, var(--bg-secondary) 100%);
     }
     .slot-card.active-slot::after {
-      content: "현재 진행 중";
+      content: "현재 회차 진행 중";
       position: absolute;
       top: -10px;
       right: 14px;
       background: var(--accent-purple);
       color: #0f172a;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 900;
-      padding: 2px 8px;
+      padding: 2px 10px;
       border-radius: 10px;
     }
     .slot-header {
@@ -345,17 +444,17 @@
     /* 영웅/무장 도감 카드 */
     .reward-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: 14px;
     }
     .reward-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 14px;
-      padding: 16px;
+      padding: 18px;
     }
     .reward-card h3 {
-      font-size: 1.0rem;
+      font-size: 1.05rem;
       color: var(--accent-gold);
       margin-bottom: 10px;
       display: flex;
@@ -364,25 +463,26 @@
     }
     .hero-list {
       list-style: none;
-      font-size: 0.84rem;
+      font-size: 0.85rem;
       color: #cbd5e1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
     .hero-list li {
       background: var(--bg-card);
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 6px;
     }
 
     /* 모바일 대응 */
-    @media (max-width: 600px) {
+    @media (max-width: 650px) {
       .container { padding: 10px; }
       header { padding: 14px; }
       .title-area h1 { font-size: 1.2rem; }
-      .tz-selector { width: 100%; justify-content: space-between; }
-      .tz-btn { padding: 5px 8px; font-size: 0.75rem; }
+      .tz-control-wrapper { width: 100%; justify-content: space-between; }
+      .date-nav-bar { flex-direction: column; align-items: stretch; }
+      .date-nav-left { justify-content: space-between; }
       .slot-items { grid-template-columns: 1fr; }
     }
   </style>
@@ -393,45 +493,71 @@
     <header>
       <div class="header-top">
         <div class="title-area">
-          <h1>🏰 PnC 연맹 캘린더 & 종합 시간표</h1>
-          <p>퍼즐앤카오스 주간 연맹 고정 일정 & 왕자의 전쟁 8시간 정밀 로테이션</p>
+          <h1>🏰 PnC 연맹 캘린더 & 종합 시간표 2.0</h1>
+          <p>퍼즐앤카오스 주간 연맹 고정 일정 · 소비 이벤트 · 왕자의 전쟁 · 3대 전장 가이드</p>
         </div>
 
-        <!-- 시차 선택 토글 버튼 -->
-        <div class="tz-selector">
-          <button class="tz-btn active" data-tz="KST" onclick="changeTZ('KST')">🇰🇷 KST (+9)</button>
-          <button class="tz-btn" data-tz="UTC" onclick="changeTZ('UTC')">🌐 UTC (+0)</button>
-          <button class="tz-btn" data-tz="JST" onclick="changeTZ('JST')">🇯🇵 JST (+9)</button>
-          <button class="tz-btn" data-tz="MSK" onclick="changeTZ('MSK')">🇷🇺 MSK (+3)</button>
+        <!-- 시차 설정 컨트롤러 (KST, UTC 기본 + 수동 커스텀 & 로컬스토리지 저장) -->
+        <div class="tz-control-wrapper">
+          <button class="tz-btn" id="btnTzKst" onclick="setTZ('KST', 9)">🇰🇷 KST (+9)</button>
+          <button class="tz-btn" id="btnTzUtc" onclick="setTZ('UTC', 0)">🌐 UTC (+0)</button>
+          <select class="tz-custom-select" id="customTzSelect" onchange="onCustomTZChange(this.value)">
+            <option value="">수동 설정...</option>
+            <option value="9">🇯🇵 JST (UTC+9)</option>
+            <option value="3">🇷🇺 MSK (UTC+3)</option>
+            <option value="8">🇨🇳 CST / SGT (UTC+8)</option>
+            <option value="1">🇪🇺 CET (UTC+1)</option>
+            <option value="-5">🇺🇸 EST (UTC-5)</option>
+            <option value="-8">🇺🇸 PST (UTC-8)</option>
+            <option value="custom">기타 오프셋 입력</option>
+          </select>
         </div>
       </div>
 
       <!-- 실시간 상태 바 -->
       <div class="live-status-bar">
-        <span id="currentDateBadge" class="badge badge-neutral">📅 로딩 중...</span>
-        <span id="currentWeekBadge" class="badge badge-ace">🏆 로딩 중...</span>
-        <span id="nextEventBadge" class="badge badge-live">⏰ 다음 이벤트 계산 중...</span>
+        <span id="currentDateBadge" class="badge badge-neutral">📅 시간 계산 중...</span>
+        <span id="currentWeekBadge" class="badge badge-ace">🏆 주간 계산 중...</span>
+        <span id="allianceEventBadge" class="badge badge-event">🎪 연맹 이벤트: 🚩 연맹 대결 (Clash)</span>
+        <span id="princeBadge" class="badge badge-prince">👑 왕자의 전쟁: 확인 중</span>
+        <span id="dragonBadge" class="badge badge-dragon">🐉 드래곤 캐슬: 1일차</span>
       </div>
     </header>
 
-    <!-- 탭 네비게이션 -->
+    <!-- 날짜 네비게이션 컨트롤러 (과거/미래 일정 자유 탐색) -->
+    <div class="date-nav-bar">
+      <div class="date-nav-left">
+        <button class="date-nav-btn" onclick="moveWeek(-1)">◀ 지난 주</button>
+        <button class="date-nav-btn" onclick="goToToday()">오늘 (Today)</button>
+        <button class="date-nav-btn" onclick="moveWeek(1)">다음 주 ▶</button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size:0.82rem; color:var(--text-muted); font-weight:700;">날짜 이동:</span>
+        <input type="date" id="datePicker" class="date-input" onchange="onDatePicked(this.value)">
+      </div>
+    </div>
+
+    <!-- 탭 네비게이션 (5대 탭) -->
     <nav class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-schedule', this)">📅 주간 연맹 시간표</button>
+      <button class="tab-btn active" onclick="switchTab('tab-schedule', this)">📅 주간 시간표 & 소비</button>
       <button class="tab-btn" onclick="switchTab('tab-prince', this)">🎯 왕자의 전쟁 (8시간 풀)</button>
+      <button class="tab-btn" onclick="switchTab('tab-war', this)">⚔️ 3대 전장 (OW/CoL/SvS)</button>
+      <button class="tab-btn" onclick="switchTab('tab-alliance', this)">🎪 대형 연맹 이벤트</button>
       <button class="tab-btn" onclick="switchTab('tab-heroes', this)">🃏 영웅 & 무장 도감</button>
     </nav>
 
-    <!-- 탭 1: 주간 연맹 시간표 -->
+    <!-- 탭 1: 주간 연맹 시간표 & 소비 테마 -->
     <section id="tab-schedule" class="tab-content active">
       <div class="schedule-grid" id="scheduleGrid">
-        <!-- JS로 요일 카드 렌더링 -->
+        <!-- JS로 선택된 주의 요일 카드 렌더링 -->
       </div>
 
       <div class="info-banner">
-        <div>🏹 <strong>H.F (Hunt Focus / 사냥 집중)</strong>: 매일 <span class="time-hf">22:00 KST</span>에 사냥 집중 스킬 활성화 후 몬스터 거점 집중 사냥을 진행합니다.</div>
-        <div>⚔️ <strong>OW (Oblivion War / 파멸의 전장)</strong>: 매주 금요일 <span class="time-ow">21:00 KST</span> 진행. (100% 안전 전장, 병력 손실 없음, 약 4만 점 목표)</div>
+        <div>🏹 <strong>H.F (Hunt Focus / 사냥 집중)</strong>: 매일 <span class="time-hf">22:00 KST</span>에 사냥 집중 활성화 후 몬스터 거점 집중 사냥!</div>
+        <div>⚔️ <strong>OW (Oblivion War / 파멸의 전장)</strong>: 매주 금요일 <span class="time-ow">21:00 KST</span> (100% 안전 전장, 병력 손실 없음, 약 4만 점 목표)</div>
         <div>🚪 <strong>기본 연맹 이벤트 시작</strong>: <span class="time-main">22:15 ~ 22:20 KST</span> (지옥의 문, 파티, 방어전 등)</div>
-        <div>😴 <strong>수요일</strong>: 연맹 이벤트 없음 (자율 휴식 및 재료 정비)</div>
+        <div>😴 <strong>수요일</strong>: 연맹 공식 이벤트 없음 (자율 채집 및 재료 정비)</div>
+        <div>🐉 <strong>드래곤 캐슬 (퍼즐 미니게임)</strong>: 3일에 1회 리셋되어 1타임 트라이 가능! 오늘 드래곤 보석 이벤트가 있는 날 꼭 클리어하세요.</div>
       </div>
     </section>
 
@@ -485,32 +611,87 @@
       </div>
 
       <div class="info-banner" style="margin-top: 14px;">
-        <div>💡 <strong>공략 팁</strong>: 【병사 훈련】 미션은 상대적으로 요구치가 낮으므로 적당한 가속권이 있다면 적극 완료하여 별하늘 영웅 조각을 챙기세요!</div>
+        <div>💡 <strong>핵심 행동 꿀팁</strong>: 【병사 훈련】 미션은 상대적으로 요구치가 낮으므로 적당한 가속권이 있다면 적극 완료하여 별하늘 영웅 조각을 챙기세요!</div>
       </div>
     </section>
 
-    <!-- 탭 3: 영웅 & 무장 도감 -->
+    <!-- 탭 3: 3대 전장 가이드 (OW / CoL / SvS) -->
+    <section id="tab-war" class="tab-content">
+      <div class="guide-card">
+        <h3>⚔️ OW (Oblivion War / 파멸의 전장)</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">매주 금요일 <span class="time-ow">21:00 KST</span> (12:00 UTC) 진행</p>
+        <ul class="guide-rule-list">
+          <li>🛡️ <strong>100% 안전 전장</strong>: 전투 중 발생하는 모든 부상병은 전장 종료 후 즉시 100% 무료 자동 치유됩니다. (사망자 0명)</li>
+          <li>🎯 <strong>개인 목표 점수</strong>: 최소 약 4만 점을 목표로 중앙 거점 점령 및 적 부대 교전에 적극 참여하세요.</li>
+          <li>📜 <strong>연맹 협약</strong>: 전투 전 상대 연맹과의 사전 협약(NAP)을 연맹 채팅 및 공지에서 반드시 확인하세요.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h3>👑 CoL (Clash of Lords / 왕들의 전쟁)</h3>
+        <p style="font-size:0.85rem; color:var(--accent-purple); margin-bottom:12px;">에이스 주간 토요일 21:00 KST ~ 일요일 19:00 KST</p>
+        <ul class="guide-rule-list">
+          <li>⛺ <strong>T1 의무대 텐트 채우기</strong>: 고티어 병력 손실을 막기 위해 의무대 용량을 저티어(T1) 병사로 미리 채워두는 전략이 필수입니다.</li>
+          <li>⛪ <strong>성당 무료 부활</strong>: 사망한 병사는 주말 종료 후 성당(Cathedral)을 통해 무료로 일정 비율 복구됩니다.</li>
+          <li>🌲 <strong>숲속 성채 이전</strong>: 왕좌 쟁탈전에 참여하는 주력 부대는 숲 지역으로 성채를 이전하여 랠리 지원 속도를 극대화합니다.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h3>🌐 SvS (Server vs Server / 전서버 원정)</h3>
+        <p style="font-size:0.85rem; color:var(--accent-blue); margin-bottom:12px;">논에이스 주간 토요일 19:00 KST ~ 일요일 19:00 KST</p>
+        <ul class="guide-rule-list">
+          <li>🛡️ <strong>24시간 보호막(쉴드) 절대 필수</strong>: 적 서버의 게릴라 공격에 대비해 원정 개시 전 24시간 쉴드를 반드시 켜두세요.</li>
+          <li>💎 <strong>홀수 시간 다이아 채집</strong>: 적 서버 맵의 고레벨 다이아 광산은 홀수 시간에 T1 공성차를 파견하여 채집하며, 4시간 후 자동 복귀합니다.</li>
+          <li>⚠️ <strong>일요일 19:00 종료 주의</strong>: 전쟁 종료 시 쉴드가 해제되면서 공격받지 않도록 종료 10분 전 상태를 점검하세요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 탭 4: 대형 연맹 이벤트 (연맹 대결 & 연맹 총동원) -->
+    <section id="tab-alliance" class="tab-content">
+      <div class="guide-card">
+        <h3>🚩 연맹 대결 / 시련 (Alliance Clash & Trial)</h3>
+        <p style="font-size:0.85rem; color:var(--accent-gold); margin-bottom:12px;">30인 출전 2부대 퍼즐 대전 (현재 진행 중)</p>
+        <ul class="guide-rule-list">
+          <li>🧩 <strong>수동 퍼즐 턴제 전투</strong>: 자동 전투가 아니며, 아레나처럼 직접 타일을 굴려 콤보와 마나 스킬을 사용하는 수동 퍼즐 대결입니다.</li>
+          <li>🎯 <strong>수비 덱 점수 방어 전략</strong>: 고티어 수비덱이 격파당하면 상대에게 대량 점수를 헌납하므로, 1부대는 최정예 철벽 방어 + 2부대는 저티어 미끼 덱으로 구성하여 패배 시 상대 획득 점수를 최소화하는 전략이 유효합니다.</li>
+          <li>🔥 <strong>공격 기회 100% 소진</strong>: 주어진 공격 기회를 모두 소진하여 연맹 총합 포인트를 높여야 승리 상자를 획득할 수 있습니다.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h3>📜 연맹 총동원 (Alliance Showdown / 쇼다운)</h3>
+        <p style="font-size:0.85rem; color:var(--accent-green); margin-bottom:12px;">1주일간 진행되는 전 연맹원 포인트 달성 이벤트</p>
+        <ul class="guide-rule-list">
+          <li>🎯 <strong>개인 필수 목표</strong>: 연맹원 전원 개별 1,500점 이상 달성을 권장합니다.</li>
+          <li>📋 <strong>고득점 미션 선별 수락</strong>: 본인이 즉시 완료할 수 있는 미션(다이아 소모, 채집, 가속 등) 위주로 골라 수락하고, 불가능한 저득점 미션은 삭제하여 갱신하세요.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 탭 5: 영웅 & 무장 도감 (이반 Apan 보병 반영) -->
     <section id="tab-heroes" class="tab-content">
       <div class="reward-grid">
         <div class="reward-card">
           <h3>👑 에이스 로드 (Ace Lord)</h3>
           <p style="font-size:0.8rem; color:var(--accent-purple); font-weight:700; margin-bottom:8px;">【찬란한 영웅 선택 카드 3】</p>
           <ul class="hero-list">
-            <li>🌌 <strong>보이드 (Boyd)</strong> - 강력한 화력 & 불속성 카운터</li>
-            <li>✨ <strong>모니카 (Monica)</strong> - 신화급 스킬 딜러</li>
-            <li>🌑 <strong>에르보시아 (Ervosia)</strong> - 어둠/단일 저격</li>
-            <li>🌀 <strong>카오스 (Chaos)</strong> - 혼돈 광역 딜러</li>
+            <li>🌌 <strong>보이드 (Boyd)</strong> - 강력한 기병 화력 & 불속성 카운터</li>
+            <li>✨ <strong>모니카 (Monica)</strong> - 신화급 스킬 딜러 (광역 폭딜)</li>
+            <li>🌑 <strong>에르보시아 (Ervosia)</strong> - 어둠 속성 단일 저격</li>
+            <li>🌀 <strong>카오스 (Chaos)</strong> - 혼돈 제어 & 지속 디버프</li>
           </ul>
         </div>
 
         <div class="reward-card">
-          <h3>⚔️ 논에이스 / 군비경쟁</h3>
+          <h3>⚔️ 논에이스 주간 (노리스 / 이반)</h3>
           <p style="font-size:0.8rem; color:var(--accent-blue); font-weight:700; margin-bottom:8px;">【에이스 영웅 3】</p>
           <ul class="hero-list">
-            <li>👑 <strong>패티 (Patty)</strong> - 부대규모 & 분노 차단 (필수)</li>
-            <li>🏹 <strong>노리스 (Norris)</strong> - 궁병 & 지속 도트딜</li>
-            <li>👼 <strong>안젤리타 (Angelita)</strong> - 보병 서포터</li>
-            <li>🛡️ <strong>이반 (Ivan)</strong> - 단단한 전방 탱커</li>
+            <li>🛡️ <strong>이반 / 아판 (Apan)</strong> - <span style="color:#fbbf24; font-weight:bold;">보병 메인 핵심 영웅!</span> 최강의 전방 방어력 & 생존 탱커</li>
+            <li>🏹 <strong>노리스 (Norris)</strong> - 궁병 특화 영웅 & 지속 독 데미지 딜러</li>
+            <li>👑 <strong>패티 (Patty)</strong> - 부대 규모 확장 & 적 분노 스킬 완벽 차단</li>
+            <li>👼 <strong>안젤리타 (Angelita)</strong> - 보병 서포터 & 아군 치유 지원</li>
           </ul>
         </div>
 
@@ -518,8 +699,8 @@
           <h3>🎯 왕자의 전쟁 (목·금·토)</h3>
           <p style="font-size:0.8rem; color:#f43f5e; font-weight:700; margin-bottom:8px;">【별하늘 영웅 선택 카드】</p>
           <ul class="hero-list">
-            <li>🌟 <strong>벨로사 (Velosa)</strong> - 특수 지원 & 버프</li>
-            <li>🌙 <strong>라일리아 (Lylia)</strong> - 별하늘 신화 딜러</li>
+            <li>🌟 <strong>벨로사 (Velosa)</strong> - 특수 지원 & 파티 버프</li>
+            <li>🌙 <strong>라일리아 (Lylia)</strong> - 별하늘 신화 딜러 (보석 소모 최강자)</li>
           </ul>
         </div>
 
@@ -540,109 +721,227 @@
 
   <script>
     // ══════════════════════════════════════════════════════════════════
-    // 시간 및 로테이션 계산 엔진
+    // PnC 캘린더 엔진 2.0 (날짜 이동, 커스텀 시차 영구저장, 3일 드래곤 캐슬)
     // ══════════════════════════════════════════════════════════════════
-    const ANCHOR_DATE = new Date("2026-08-24T00:00:00Z"); // UTC 기준 월요일 = 논에이스 주간
-    let currentTZ = "KST"; // 기본 KST
 
-    const TZ_OFFSETS = {
-      "KST": 9,
-      "UTC": 0,
-      "JST": 9,
-      "MSK": 3
-    };
+    const ANCHOR_DATE = new Date("2026-08-24T00:00:00Z"); // UTC 월요일 = 논에이스 주간
+    const DRAGON_CASTLE_ANCHOR = new Date("2026-09-18T00:00:00Z"); // 금 = 1일차, 토 = 2일차, 일 = 3일차
 
-    // 요일별 연맹 일정 정의 (UTC 시간 기준 분)
-    // H.F: 13:00 UTC (780분)
-    // OW: 12:00 UTC (720분)
-    // Gate/Party/Undead/Defence: 13:15 UTC (795분)
+    // 현재 화면에 표시할 기준 날짜 (기본: 오늘)
+    let selectedDate = new Date();
+
+    // 시차 설정 (기본: 로컬스토리지 복원 or KST +9)
+    let currentTzName = localStorage.getItem("pnc_tz_name") || "KST";
+    let currentTzOffset = localStorage.getItem("pnc_tz_offset") !== null 
+      ? Number(localStorage.getItem("pnc_tz_offset")) 
+      : 9;
+
+    // 요일별 소비 이벤트 & 연맹 고정 일정 데이터 맵
     const SCHEDULE_DATA = {
-      // 0: 월, 1: 화, 2: 수, 3: 목, 4: 금, 5: 토, 6: 일
       ace: [
-        { dayName: "월요일 (Mon)", theme: "🦸 영웅 집결", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
-        ]},
-        { dayName: "화요일 (Tue)", theme: "🏗️ 성지 발전 (건설/연구)", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" },
-          { timeUTC: "13:20", name: "🧟 Undead (언데드 침략)", desc: "연맹 성채 방어 & 병력 지원", type: "undead" }
-        ]},
-        { dayName: "수요일 (Wed)", theme: "⚡ 스태미나 & 자원 채집", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "-", name: "😴 연맹 이벤트 없음", desc: "개인 자원 채집 및 정비 휴식", type: "rest" }
-        ]},
-        { dayName: "목요일 (Thu)", theme: "⚔️ 병력 훈련 (군비 확충)", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" },
-          { timeUTC: "13:20", name: "🧟 Undead (언데드 침략)", desc: "연맹 성채 방어 & 병력 지원", type: "undead" }
-        ]},
-        { dayName: "금요일 (Fri)", theme: "🔮 완벽 대비 (종합)", events: [
-          { timeUTC: "12:00", name: "⚔️ OW (파멸의 전장)", desc: "100% 안전 전장 맞대결! 약 4만 점 목표", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
-        ]},
-        { dayName: "토요일 (Sat)", theme: "👑 에이스 결전 & CoL", events: [
-          { timeUTC: "12:00", name: "👑 CoL (왕들의 전쟁 개시)", desc: "T1 텐트 채우기 & 성당 무료 부활, 숲속 성채 이전", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
-        ]},
-        { dayName: "일요일 (Sun)", theme: "👑 CoL 왕좌 쟁탈전", events: [
-          { timeUTC: "10:00", name: "👑 CoL 왕좌 쟁탈 종료", desc: "19:00 KST 전쟁 종료 및 보상 결산", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
-        ]}
+        { 
+          dayName: "월요일 (Mon)", 
+          themeTitle: "🦸 영웅 집결", 
+          themeConsume: "고급 모집 스크롤, 영웅 조각 합성, 영웅 레벨업", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
+          ]
+        },
+        { 
+          dayName: "화요일 (Tue)", 
+          themeTitle: "🏗️ 성지 발전 (건설/연구)", 
+          themeConsume: "건설 가속, 연구 가속, 자원 소모", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" },
+            { timeUTC: "13:20", name: "🧟 Undead (언데드 침략)", desc: "연맹 성채 방어 & 병력 지원", type: "defence" }
+          ]
+        },
+        { 
+          dayName: "수요일 (Wed)", 
+          themeTitle: "⚡ 스태미나 & 자원 채집", 
+          themeConsume: "AP/스태미나 포션 소모, 필드 몬스터 사냥, 맵 자원지 채집", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "-", name: "😴 공식 연맹 이벤트 없음", desc: "개인 자원 채집 및 정비 휴식", type: "rest" }
+          ]
+        },
+        { 
+          dayName: "목요일 (Thu)", 
+          themeTitle: "⚔️ 병력 훈련 (군비 확충)", 
+          themeConsume: "훈련 가속, 병력 모집, 병사 티어 승급", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" },
+            { timeUTC: "13:20", name: "🧟 Undead (언데드 침략)", desc: "연맹 성채 방어 & 병력 지원", type: "defence" }
+          ]
+        },
+        { 
+          dayName: "금요일 (Fri)", 
+          themeTitle: "🐉 드래곤 & 장비 강화 (완벽 대비)", 
+          themeConsume: "드래곤 스톤, 장비 제련/강화 문장, 종합 가속권", 
+          events: [
+            { timeUTC: "12:00", name: "⚔️ OW (파멸의 전장)", desc: "100% 안전 전장 맞대결! 약 4만 점 목표", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
+          ]
+        },
+        { 
+          dayName: "토요일 (Sat)", 
+          themeTitle: "💎 정수 & 수정 획득 (에이스 결전)", 
+          themeConsume: "정수 획득, 수정 파밍, 킬 점수 달성", 
+          events: [
+            { timeUTC: "12:00", name: "👑 CoL (왕들의 전쟁 개시)", desc: "T1 텐트 채우기 & 성당 무료 부활, 숲속 성채 이전", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
+          ]
+        },
+        { 
+          dayName: "일요일 (Sun)", 
+          themeTitle: "📦 다음 주 논에이스 준비 (비축 모드)", 
+          themeConsume: "가속권 및 고급 모집 스크롤 아끼기 (비축)", 
+          events: [
+            { timeUTC: "10:00", name: "👑 CoL 왕좌 쟁탈 종료", desc: "19:00 KST 전쟁 종료 및 보상 결산", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
+          ]
+        }
       ],
       nonAce: [
-        { dayName: "월요일 (Mon)", theme: "🦸 내정 정비 & 과학 연구", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
-        ]},
-        { dayName: "화요일 (Tue)", theme: "🔮 룬 사용, 물자 수집 & 발전", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🛡️ Defence (연맹 방어전)", desc: "연맹 깃발 및 거점 방어 전투", type: "undead" },
-          { timeUTC: "13:20", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
-        ]},
-        { dayName: "수요일 (Wed)", theme: "🛡️ 장비 강화 & 금단의 보물", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "-", name: "🪙 행운의 뒤집기 1일차", desc: "무료 코인 6개 챙기기 & 수요일 연맹 이벤트는 휴식", type: "party" }
-        ]},
-        { dayName: "목요일 (Thu)", theme: "⚔️ 부대 정비 및 기본 훈련", events: [
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🛡️ Defence (연맹 방어전)", desc: "연맹 깃발 및 거점 방어 전투", type: "undead" },
-          { timeUTC: "13:20", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
-        ]},
-        { dayName: "금요일 (Fri)", theme: "💎 장비 및 룬 정밀 제련", events: [
-          { timeUTC: "12:00", name: "⚔️ OW (파멸의 전장)", desc: "100% 안전 전장 맞대결! 약 4만 점 목표", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
-          { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
-        ]},
-        { dayName: "토요일 (Sat)", theme: "🌐 전서버 원정 (SvS)", events: [
-          { timeUTC: "10:00", name: "🌐 SvS 전서버 원정 개시", desc: "24시간 쉴드 필수! 홀수 시간 다이아 파밍 (T1 공성차)", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
-        ]},
-        { dayName: "일요일 (Sun)", theme: "🌐 SvS 원정 2일차", events: [
-          { timeUTC: "10:00", name: "🌐 SvS 전서버 원정 종료", desc: "19:00 KST 원정 종료 및 쉴드 해제 주의", type: "ow" },
-          { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
-        ]}
+        { 
+          dayName: "월요일 (Mon)", 
+          themeTitle: "🦸 내정 정비 & 과학 연구", 
+          themeConsume: "연구 가속, 과학 기술 투자, 내정 발전", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
+          ]
+        },
+        { 
+          dayName: "화요일 (Tue)", 
+          themeTitle: "🔮 룬 사용, 물자 수집 & 발전", 
+          themeConsume: "고급 룬 장착, 물자 채집, 영지 생산 수집", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🛡️ Defence (연맹 방어전)", desc: "연맹 깃발 및 거점 방어 전투", type: "defence" },
+            { timeUTC: "13:20", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
+          ]
+        },
+        { 
+          dayName: "수요일 (Wed)", 
+          themeTitle: "🛡️ 장비 강화 & 금단의 보물", 
+          themeConsume: "장비 강화 재료 소모, 보물 탐색", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "-", name: "🪙 행운의 뒤집기 1일차", desc: "무료 코인 6개 챙기기 & 수요일 연맹 이벤트는 휴식", type: "party" }
+          ]
+        },
+        { 
+          dayName: "목요일 (Thu)", 
+          themeTitle: "⚔️ 부대 정비 및 기본 훈련", 
+          themeConsume: "훈련 가속, 보병/기병/궁병 군비 증강", 
+          events: [
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🛡️ Defence (연맹 방어전)", desc: "연맹 깃발 및 거점 방어 전투", type: "defence" },
+            { timeUTC: "13:20", name: "🚪 Gate (지옥의 문)", desc: "연맹 인페르노 게이트 소환 및 격파", type: "gate" }
+          ]
+        },
+        { 
+          dayName: "금요일 (Fri)", 
+          themeTitle: "💎 장비 및 룬 정밀 제련", 
+          themeConsume: "장비 옵션 리롤, 룬 강화, 제련석 소모", 
+          events: [
+            { timeUTC: "12:00", name: "⚔️ OW (파멸의 전장)", desc: "100% 안전 전장 맞대결! 약 4만 점 목표", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" },
+            { timeUTC: "13:15", name: "🎉 Party (연맹 파티)", desc: "연맹 영토 모닥불 만찬 & 선물", type: "party" }
+          ]
+        },
+        { 
+          dayName: "토요일 (Sat)", 
+          themeTitle: "🌐 전서버 원정 (SvS 1일차)", 
+          themeConsume: "24h 쉴드 필수, 홀수 시간 T1 다이아 채집", 
+          events: [
+            { timeUTC: "10:00", name: "🌐 SvS 전서버 원정 개시", desc: "24시간 쉴드 필수! 홀수 시간 다이아 파밍 (T1 공성차)", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
+          ]
+        },
+        { 
+          dayName: "일요일 (Sun)", 
+          themeTitle: "📦 다음 주 에이스 로드 준비 (비축)", 
+          themeConsume: "에이스 로드(보이드/모니카) 대비 모든 재료 비축", 
+          events: [
+            { timeUTC: "10:00", name: "🌐 SvS 전서버 원정 종료", desc: "19:00 KST 원정 종료 및 쉴드 해제 주의", type: "ow" },
+            { timeUTC: "13:00", name: "🏹 H.F (사냥 집중)", desc: "몬스터 거점 랠리 집중 사냥", type: "hf" }
+          ]
+        }
       ]
     };
 
-    // UTC 시간(HH:mm)을 선택된 타임존으로 변환
-    function convertTime(utcTimeStr, targetTZ) {
+    // 시간 변환
+    function convertTime(utcTimeStr, offset) {
       if (!utcTimeStr || utcTimeStr === "-") return "-";
       const [h, m] = utcTimeStr.split(":").map(Number);
-      const offset = TZ_OFFSETS[targetTZ] || 0;
       let targetH = (h + offset) % 24;
       if (targetH < 0) targetH += 24;
       const padH = String(targetH).padStart(2, "0");
       const padM = String(m).padStart(2, "0");
-      return `${padH}:${padM} ${targetTZ}`;
+      const sign = offset >= 0 ? `+${offset}` : `${offset}`;
+      return `${padH}:${padM} (UTC${sign})`;
     }
 
-    // 시간 범위 변환 (예: "00:00 ~ 07:55")
-    function convertRange(rangeStr, targetTZ) {
+    function convertRange(rangeStr, offset) {
       const parts = rangeStr.split("~").map(s => s.trim());
       if (parts.length !== 2) return rangeStr;
-      return `${convertTime(parts[0], targetTZ)} ~ ${convertTime(parts[1], targetTZ)}`;
+      return `${convertTime(parts[0], offset)} ~ ${convertTime(parts[1], offset)}`;
+    }
+
+    // 시차 변경 및 저장
+    function setTZ(name, offset) {
+      currentTzName = name;
+      currentTzOffset = offset;
+      localStorage.setItem("pnc_tz_name", name);
+      localStorage.setItem("pnc_tz_offset", offset);
+
+      document.getElementById("btnTzKst").classList.toggle("active", name === "KST");
+      document.getElementById("btnTzUtc").classList.toggle("active", name === "UTC");
+      
+      const customSelect = document.getElementById("customTzSelect");
+      if (name !== "KST" && name !== "UTC") {
+        customSelect.value = String(offset);
+      } else {
+        customSelect.value = "";
+      }
+      render();
+    }
+
+    function onCustomTZChange(val) {
+      if (!val) return;
+      if (val === "custom") {
+        const input = prompt("UTC 기준 시차 오프셋을 숫자로 입력하세요 (-12 ~ +14):", "9");
+        if (input !== null && !isNaN(Number(input))) {
+          const num = Number(input);
+          setTZ(`UTC${num >= 0 ? '+' + num : num}`, num);
+        }
+      } else {
+        const num = Number(val);
+        setTZ(`UTC${num >= 0 ? '+' + num : num}`, num);
+      }
+    }
+
+    // 날짜 이동
+    function moveWeek(delta) {
+      selectedDate = new Date(selectedDate.getTime() + delta * 7 * 24 * 3600 * 1000);
+      render();
+    }
+
+    function goToToday() {
+      selectedDate = new Date();
+      render();
+    }
+
+    function onDatePicked(val) {
+      if (!val) return;
+      selectedDate = new Date(val + "T12:00:00Z");
+      render();
     }
 
     // 탭 전환
@@ -653,61 +952,92 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    // 시차 변경
-    function changeTZ(tz) {
-      currentTZ = tz;
-      document.querySelectorAll('.tz-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.tz === tz);
-      });
-      render();
-    }
-
     // 전체 렌더링
     function render() {
-      const now = new Date();
+      const realNow = new Date();
 
-      // 이번 주 월요일 계산 (UTC 기준)
-      const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-      const dayOfWeek = nowUTC.getUTCDay(); // 0(일) ~ 6(토)
-      const diffToMonday = (dayOfWeek + 6) % 7; // 월=0, 일=6
-      const currentMonday = new Date(nowUTC);
-      currentMonday.setUTCDate(nowUTC.getUTCDate() - diffToMonday);
-      currentMonday.setUTCHours(0, 0, 0, 0);
+      // 시차 컨트롤러 활성화 상태 동기화
+      document.getElementById("btnTzKst").classList.toggle("active", currentTzName === "KST");
+      document.getElementById("btnTzUtc").classList.toggle("active", currentTzName === "UTC");
 
-      const diffDays = Math.floor((currentMonday - ANCHOR_DATE) / (1000 * 60 * 60 * 24));
+      // 날짜 피커 값 동기화
+      const selYear = selectedDate.getFullYear();
+      const selMonth = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const selDay = String(selectedDate.getDate()).padStart(2, "0");
+      document.getElementById("datePicker").value = `${selYear}-${selMonth}-${selDay}`;
+
+      // 선택된 날짜 기준 월요일(UTC) 계산
+      const targetUTC = new Date(selectedDate.getTime());
+      const dayOfWeek = targetUTC.getUTCDay(); // 0(일)~6(토)
+      const diffToMonday = (dayOfWeek + 6) % 7;
+      const targetMonday = new Date(targetUTC);
+      targetMonday.setUTCDate(targetUTC.getUTCDate() - diffToMonday);
+      targetMonday.setUTCHours(0, 0, 0, 0);
+
+      // 주차 계산 및 에이스 여부
+      const diffDays = Math.floor((targetMonday - ANCHOR_DATE) / (1000 * 60 * 60 * 24));
       const diffWeeks = Math.floor(diffDays / 7);
       const isAceWeek = (diffWeeks % 2 === 1);
 
-      // 상단 배지 업데이트
-      const tzOffset = TZ_OFFSETS[currentTZ];
-      const localNow = new Date(nowUTC.getTime() + tzOffset * 3600000);
-      const year = localNow.getUTCFullYear();
-      const month = String(localNow.getUTCMonth() + 1).padStart(2, '0');
-      const date = String(localNow.getUTCDate()).padStart(2, '0');
-      const hours = String(localNow.getUTCHours()).padStart(2, '0');
-      const mins = String(localNow.getUTCMinutes()).padStart(2, '0');
+      // 상단 배지 갱신
+      // 1. 현재 날짜/시간
+      const tzOffset = currentTzOffset;
+      const localNow = new Date(realNow.getTime() + (tzOffset * 3600 - realNow.getTimezoneOffset() * 60) * 1000);
+      const nowStr = `${localNow.getFullYear()}-${String(localNow.getMonth()+1).padStart(2,'0')}-${String(localNow.getDate()).padStart(2,'0')} ${String(localNow.getHours()).padStart(2,'0')}:${String(localNow.getMinutes()).padStart(2,'0')}`;
+      document.getElementById("currentDateBadge").textContent = `📅 ${nowStr} (UTC${tzOffset >= 0 ? '+' + tzOffset : tzOffset})`;
 
-      document.getElementById("currentDateBadge").textContent = `📅 ${year}-${month}-${date} ${hours}:${mins} (${currentTZ})`;
-
+      // 2. 주간 배지
       const weekBadge = document.getElementById("currentWeekBadge");
       if (isAceWeek) {
         weekBadge.className = "badge badge-ace";
         weekBadge.textContent = "👑 에이스 로드 주간 (보이드/모니카)";
       } else {
         weekBadge.className = "badge badge-nonace";
-        weekBadge.textContent = "⚔️ 논에이스 주간 (패티/노리스)";
+        weekBadge.textContent = "⚔️ 논에이스 주간 (노리스/이반 Apan)";
       }
 
-      // 오늘 요일 인덱스 (0:월 ~ 6:일)
-      const localDayIdx = (localNow.getUTCDay() + 6) % 7;
+      // 3. 대형 연맹 이벤트 (현재 연맹 대결 활성)
+      const allianceBadge = document.getElementById("allianceEventBadge");
+      allianceBadge.textContent = "🎪 연맹 이벤트: 🚩 연맹 대결 (Clash) 진행 중";
+
+      // 4. 왕자의 전쟁 상태 (목·금·토요일만 활성)
+      const princeBadge = document.getElementById("princeBadge");
+      const currentUTCDay = realNow.getUTCDay();
+      const currentUTCHour = realNow.getUTCHours();
+      const isPrinceDay = [4, 5, 6].includes(currentUTCDay);
+      if (isPrinceDay) {
+        let slotName = "1회차 (09:00~16:55 KST)";
+        if (currentUTCHour >= 8 && currentUTCHour < 16) slotName = "2회차 (17:00~00:55 KST)";
+        else if (currentUTCHour >= 16 || currentUTCHour < 0) slotName = "3회차 (01:00~08:55 KST)";
+        princeBadge.textContent = `👑 왕자의 전쟁: ${slotName} 진행 중!`;
+        princeBadge.style.display = "inline-flex";
+      } else {
+        princeBadge.textContent = "👑 왕자의 전쟁: 목·금·토 오픈 대기";
+      }
+
+      // 5. 드래곤 캐슬 3일 주기 계산 (2026-09-18 금 = 1일차)
+      const dragonDiffDays = Math.floor((realNow - DRAGON_CASTLE_ANCHOR) / (1000 * 60 * 60 * 24));
+      const dragonCycleDay = ((dragonDiffDays % 3) + 3) % 3 + 1; // 1, 2, 3
+      const daysUntilReset = 3 - dragonCycleDay;
+      const dragonBadge = document.getElementById("dragonBadge");
+      dragonBadge.textContent = `🐉 드래곤 캐슬: ${dragonCycleDay}일차 (${daysUntilReset === 0 ? '오늘 밤 리셋' : daysUntilReset + '일 후 리셋'})`;
 
       // 주간 시간표 렌더링
       const scheduleList = isAceWeek ? SCHEDULE_DATA.ace : SCHEDULE_DATA.nonAce;
       const grid = document.getElementById("scheduleGrid");
       grid.innerHTML = "";
 
+      // 오늘 날짜인지 판별용
+      const realLocalDayIdx = (realNow.getDay() + 6) % 7; // 0:월 ~ 6:일
+      const isViewingCurrentWeek = Math.abs(targetMonday - realNow) < 7 * 24 * 3600 * 1000;
+
       scheduleList.forEach((dayData, idx) => {
-        const isToday = (idx === localDayIdx);
+        // 해당 요일의 실제 날짜 계산
+        const dayDate = new Date(targetMonday);
+        dayDate.setUTCDate(targetMonday.getUTCDate() + idx);
+        const dayDateStr = `${dayDate.getUTCMonth() + 1}/${dayDate.getUTCDate()}`;
+
+        const isToday = isViewingCurrentWeek && (idx === realLocalDayIdx);
         const card = document.createElement("div");
         card.className = `day-card ${isToday ? 'today' : ''}`;
 
@@ -718,8 +1048,9 @@
           else if (evt.type === "hf") highlightClass = "highlight-hf";
           else if (evt.type === "gate") highlightClass = "highlight-gate";
           else if (evt.type === "party") highlightClass = "highlight-party";
+          else if (evt.type === "defence") highlightClass = "highlight-defence";
 
-          const formattedTime = convertTime(evt.timeUTC, currentTZ);
+          const formattedTime = convertTime(evt.timeUTC, currentTzOffset);
 
           eventsHtml += `
             <div class="event-item ${highlightClass}">
@@ -734,8 +1065,14 @@
 
         card.innerHTML = `
           <div class="day-header">
-            <span class="day-title">${dayData.dayName}</span>
-            <span class="daily-theme">${dayData.theme}</span>
+            <div class="day-title-row">
+              <span class="day-title">${dayData.dayName}</span>
+              <span class="day-date-sub">${dayDateStr}</span>
+            </div>
+            <div class="daily-theme-box">
+              <div class="daily-theme-title">🎯 ${dayData.themeTitle}</div>
+              <div class="daily-consume-items">📦 소비/진행: ${dayData.themeConsume}</div>
+            </div>
           </div>
           <div class="event-list">
             ${eventsHtml}
@@ -745,22 +1082,18 @@
       });
 
       // 안내 배너 시간 갱신
-      document.querySelectorAll(".time-hf").forEach(el => el.textContent = convertTime("13:00", currentTZ));
-      document.querySelectorAll(".time-ow").forEach(el => el.textContent = convertTime("12:00", currentTZ));
+      document.querySelectorAll(".time-hf").forEach(el => el.textContent = convertTime("13:00", currentTzOffset));
+      document.querySelectorAll(".time-ow").forEach(el => el.textContent = convertTime("12:00", currentTzOffset));
       document.querySelectorAll(".time-main").forEach(el => {
-        el.textContent = `${convertTime("13:15", currentTZ)} ~ ${convertTime("13:20", currentTZ)}`;
+        el.textContent = `${convertTime("13:15", currentTzOffset)} ~ ${convertTime("13:20", currentTzOffset)}`;
       });
 
       // 왕자의 전쟁 슬롯 시간 갱신
-      document.querySelector(".time-slot-1").textContent = convertRange("00:00 ~ 07:55", currentTZ);
-      document.querySelector(".time-slot-2").textContent = convertRange("08:00 ~ 15:55", currentTZ);
-      document.querySelector(".time-slot-3").textContent = convertRange("16:00 ~ 23:55", currentTZ);
+      document.querySelector(".time-slot-1").textContent = convertRange("00:00 ~ 07:55", currentTzOffset);
+      document.querySelector(".time-slot-2").textContent = convertRange("08:00 ~ 15:55", currentTzOffset);
+      document.querySelector(".time-slot-3").textContent = convertRange("16:00 ~ 23:55", currentTzOffset);
 
-      // 왕자의 전쟁 현재 진행 슬롯 하이라이트 (목·금·토요일만 활성)
-      const currentUTCHour = nowUTC.getUTCHours();
-      const currentUTCDay = nowUTC.getUTCDay(); // 4:목, 5:금, 6:토
-      const isPrinceDay = [4, 5, 6].includes(currentUTCDay);
-
+      // 왕자의 전쟁 현재 슬롯 하이라이트
       document.querySelectorAll(".slot-card").forEach(c => c.classList.remove("active-slot"));
       if (isPrinceDay) {
         if (currentUTCHour >= 0 && currentUTCHour < 8) {
@@ -771,27 +1104,11 @@
           document.getElementById("slotCard3")?.classList.add("active-slot");
         }
       }
-
-      // 다음 이벤트 배지 계산
-      let nextEventText = "다음 이벤트: 🏹 H.F (사냥 집중)";
-      if (currentUTCHour < 12) {
-        nextEventText = isTodayFriday() ? "다음 이벤트: ⚔️ OW (파멸의 전장)" : "다음 이벤트: 🏹 H.F (사냥 집중)";
-      } else if (currentUTCHour >= 12 && currentUTCHour < 13) {
-        nextEventText = "진행 중: ⚔️ OW / 다음: 🏹 H.F";
-      } else if (currentUTCHour >= 13 && currentUTCHour < 14) {
-        nextEventText = "진행 중: 🏹 H.F & 연맹 메인 이벤트";
-      }
-      document.getElementById("nextEventBadge").textContent = nextEventText;
-    }
-
-    function isTodayFriday() {
-      const now = new Date();
-      return now.getUTCDay() === 5;
     }
 
     // 초기 실행
     render();
-    setInterval(render, 60000); // 1분마다 자동 갱신
+    setInterval(render, 60000);
   </script>
 </body>
 </html>
