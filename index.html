@@ -651,9 +651,9 @@
 
     <!-- 탭 4: 대형 연맹 이벤트 & 시련 (대결 / 30인 퍼즐 대항전 / 시련 / 총동원) -->
     <section id="tab-alliance" class="tab-content">
-      <!-- 1. 연맹 대결 (현재 진행 중인 1주일 테마 포인트전) -->
-      <div class="guide-card" style="border: 2px solid var(--accent-gold);">
-        <h3>⚔️ 【연맹 대결】 (Alliance Duel) <span style="font-size:0.75rem; background:var(--accent-gold); color:#0f172a; padding:2px 8px; border-radius:10px; font-weight:900; margin-left:8px;">현재 진행 중</span></h3>
+      <!-- 1. 연맹 대결 (1주일 테마 포인트전) -->
+      <div class="guide-card" id="card-duel">
+        <h3>⚔️ 【연맹 대결】 (Alliance Duel) <span id="badge-active-duel" style="display:none; font-size:0.75rem; background:var(--accent-gold); color:#0f172a; padding:2px 8px; border-radius:10px; font-weight:900; margin-left:8px;">🔥 현재 진행 중</span></h3>
         <p style="font-size:0.85rem; color:var(--accent-gold); margin-bottom:12px;">월요일 ~ 일요일 1주일간 두 연맹 1:1 매칭 테마 포인트 대항전</p>
         <ul class="guide-rule-list">
           <li>🏆 <strong>승리 룰</strong>: 매일 주어지는 테마(아이템 소비, 건설, 연구, 훈련, 가속 등)로 포인트를 많이 획득한 연맹이 <strong>해당 일자의 일일 승리</strong>를 가져갑니다.</li>
@@ -663,7 +663,7 @@
       </div>
 
       <!-- 2. 연맹 30인 퍼즐 대항전 -->
-      <div class="guide-card">
+      <div class="guide-card" id="card-clash">
         <h3>🧩 【연맹 30인 퍼즐 대항전】 (Alliance Clash / 30 vs 30)</h3>
         <p style="font-size:0.85rem; color:var(--accent-blue); margin-bottom:12px;">30인 출전 2부대 편성 수동 퍼즐 대결 (약 1일간 진행)</p>
         <ul class="guide-rule-list">
@@ -674,7 +674,7 @@
       </div>
 
       <!-- 3. 연맹 시련 -->
-      <div class="guide-card">
+      <div class="guide-card" id="card-trial">
         <h3>🏛️ 【연맹 시련】 (Alliance Trial)</h3>
         <p style="font-size:0.85rem; color:var(--accent-purple); margin-bottom:12px;">매주 월요일 시작 · 매일 3회 무료 트라이 점수 누적제</p>
         <ul class="guide-rule-list">
@@ -689,8 +689,8 @@
       </div>
 
       <!-- 4. 연맹 총동원 (쇼다운) -->
-      <div class="guide-card">
-        <h3>📜 【연맹 총동원】 (Alliance Showdown / 쇼다운)</h3>
+      <div class="guide-card" id="card-showdown">
+        <h3>📜 【연맹 총동원】 (Alliance Showdown / 쇼다운) <span id="badge-active-showdown" style="display:none; font-size:0.75rem; background:var(--accent-green); color:#0f172a; padding:2px 8px; border-radius:10px; font-weight:900; margin-left:8px;">🔥 현재 진행 중</span></h3>
         <p style="font-size:0.85rem; color:var(--accent-green); margin-bottom:12px;">1주일간 진행되는 전 연맹원 미션 달성 이벤트</p>
         <ul class="guide-rule-list">
           <li>🎯 <strong>개인 필수 목표</strong>: 연맹원 전원 개별 1,500점 이상 달성을 권장합니다.</li>
@@ -1025,9 +1025,38 @@
         weekBadge.textContent = "⚔️ 논에이스 주간 (노리스/이반 Apan)";
       }
 
-      // 3. 대형 연맹 이벤트 (현재 연맹 대결 활성)
+      // 3. 대형 연맹 이벤트 (연맹 대결 vs 연맹 총동원 쇼다운 동적 계산)
+      // 기준 앵커: 2026-09-14(월) = 연맹 대결, 2026-09-21(월) = 연맹 총동원 (쇼다운)
+      const ALLIANCE_ANCHOR = new Date("2026-09-14T00:00:00Z");
+      const eventDiffDays = Math.floor((targetMonday - ALLIANCE_ANCHOR) / (1000 * 60 * 60 * 24));
+      const eventDiffWeeks = Math.floor(eventDiffDays / 7);
+      const isShowdownWeek = (((eventDiffWeeks % 2) + 2) % 2 === 1);
+
       const allianceBadge = document.getElementById("allianceEventBadge");
-      allianceBadge.textContent = "🎪 진행 중: ⚔️ 연맹 대결 (Alliance Duel / 1:1 포인트전)";
+      const cardDuel = document.getElementById("card-duel");
+      const cardShowdown = document.getElementById("card-showdown");
+      const duelBadge = document.getElementById("badge-active-duel");
+      const showdownBadge = document.getElementById("badge-active-showdown");
+
+      if (isShowdownWeek) {
+        allianceBadge.className = "badge badge-event";
+        allianceBadge.textContent = "🎪 진행 중: 📜 연맹 총동원 (쇼다운 / 개인 1500점 달성)";
+        if (cardShowdown && cardDuel) {
+          cardShowdown.style.border = "2px solid var(--accent-green)";
+          if (showdownBadge) showdownBadge.style.display = "inline-block";
+          cardDuel.style.border = "1px solid var(--border-color)";
+          if (duelBadge) duelBadge.style.display = "none";
+        }
+      } else {
+        allianceBadge.className = "badge badge-event";
+        allianceBadge.textContent = "🎪 진행 중: ⚔️ 연맹 대결 (Alliance Duel / 1:1 포인트전)";
+        if (cardDuel && cardShowdown) {
+          cardDuel.style.border = "2px solid var(--accent-gold)";
+          if (duelBadge) duelBadge.style.display = "inline-block";
+          cardShowdown.style.border = "1px solid var(--border-color)";
+          if (showdownBadge) showdownBadge.style.display = "none";
+        }
+      }
 
       // 4. 왕자의 전쟁 상태 (목·금·토요일만 활성)
       const princeBadge = document.getElementById("princeBadge");
