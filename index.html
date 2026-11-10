@@ -476,6 +476,45 @@
     }
 
     /* 모바일 대응 */
+    /* 📸 스크린샷으로 확인된 이벤트 (게임 화면 판독 결과) */
+    .shot-panel {
+      background: var(--bg-secondary);
+      border: 1px solid #0e7490;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .shot-panel-head {
+      display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+      gap: 6px; margin-bottom: 10px;
+    }
+    .shot-panel-head h2 { font-size: 1.05rem; font-weight: 800; color: var(--accent-blue); }
+    .shot-panel-head span { font-size: 0.75rem; color: var(--text-muted); }
+    .shot-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; }
+    .shot-card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+      padding: 12px 14px; min-width: 0;
+    }
+    .shot-card.ending { border-color: var(--accent-red); }
+    .shot-card.upcoming { opacity: 0.85; border-style: dashed; }
+    .shot-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 800; font-size: 0.98rem; }
+    .shot-chip { font-size: 0.68rem; font-weight: 800; padding: 1px 7px; border-radius: 10px; background: rgba(56,189,248,0.15); color: #7dd3fc; border: 1px solid #0369a1; }
+    .shot-chip.low { background: rgba(244,63,94,0.15); color: #fda4af; border-color: #be123c; }
+    .shot-time { font-size: 0.8rem; color: var(--accent-gold); font-weight: 700; margin-top: 4px; }
+    .shot-summary { font-size: 0.84rem; color: var(--text-muted); margin-top: 4px; }
+    .shot-warn { font-size: 0.82rem; margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: rgba(244,63,94,0.12); color: #fecdd3; }
+    .shot-check { font-size: 0.8rem; margin-top: 6px; color: #fda4af; }
+    .shot-actions { list-style: none; margin-top: 8px; display: grid; gap: 4px; }
+    .shot-actions label { display: flex; align-items: flex-start; gap: 8px; font-size: 0.86rem; cursor: pointer; padding: 4px 2px; }
+    .shot-actions input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--accent-green); flex-shrink: 0; }
+    .shot-actions input:checked + span { text-decoration: line-through; color: var(--text-muted); }
+    .shot-card details { margin-top: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    .shot-card summary { cursor: pointer; font-weight: 700; color: var(--text-main); }
+    .shot-rules { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    .shot-rules td { padding: 3px 4px; border-bottom: 1px solid var(--border-color); }
+    .shot-rules td:last-child { text-align: right; color: var(--accent-gold); white-space: nowrap; }
+    .shot-empty { font-size: 0.85rem; color: var(--text-muted); }
+
     @media (max-width: 650px) {
       .container { padding: 10px; }
       header { padding: 14px; }
@@ -537,6 +576,15 @@
         <input type="date" id="datePicker" class="date-input" onchange="onDatePicked(this.value)">
       </div>
     </div>
+
+    <!-- 📸 스크린샷으로 확인된 이벤트 (pnc-bot이 events.json으로 동기화) -->
+    <section class="shot-panel" id="shotPanel" hidden>
+      <div class="shot-panel-head">
+        <h2>📸 게임 화면으로 확인된 이벤트</h2>
+        <span id="shotUpdated"></span>
+      </div>
+      <div class="shot-list" id="shotList"></div>
+    </section>
 
     <!-- 탭 네비게이션 (5대 탭) -->
     <nav class="nav-tabs">
@@ -984,6 +1032,7 @@
     // 전체 렌더링
     function render() {
       const realNow = new Date();
+      if (shotData) renderShotEvents();
 
       // 시차 컨트롤러 활성화 상태 동기화
       document.getElementById("btnTzKst").classList.toggle("active", currentTzName === "KST");
@@ -1011,7 +1060,7 @@
       // 상단 배지 갱신
       // 1. 현재 날짜/시간
       const tzOffset = currentTzOffset;
-      const localNow = new Date(realNow.getTime() + (tzOffset * 3600 - realNow.getTimezoneOffset() * 60) * 1000);
+      const localNow = new Date(realNow.getTime() + (tzOffset * 3600 + realNow.getTimezoneOffset() * 60) * 1000);
       const nowStr = `${localNow.getFullYear()}-${String(localNow.getMonth()+1).padStart(2,'0')}-${String(localNow.getDate()).padStart(2,'0')} ${String(localNow.getHours()).padStart(2,'0')}:${String(localNow.getMinutes()).padStart(2,'0')}`;
       document.getElementById("currentDateBadge").textContent = `📅 ${nowStr} (UTC${tzOffset >= 0 ? '+' + tzOffset : tzOffset})`;
 
@@ -1164,9 +1213,110 @@
       }
     }
 
+    // ══════════════════════════════════════════════════════════════════
+    // 📸 스크린샷 판독 이벤트 (events.json) — 게임 화면에서 읽은 정보만 표시
+    // ══════════════════════════════════════════════════════════════════
+    let shotData = null;
+    const SHOT_CAT = { alliance: "연맹", personal: "개인", server: "서버", pack: "패키지", notice: "공지", other: "기타" };
+    const HTML_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+    function escHtml(v) {
+      return String(v ?? "").replace(/[&<>"']/g, c => HTML_ESC[c]);
+    }
+
+    function fmtShotAt(ms) {
+      const d = new Date(ms + currentTzOffset * 3600000);
+      const wd = ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()];
+      const hh = String(d.getUTCHours()).padStart(2, "0");
+      const mm = String(d.getUTCMinutes()).padStart(2, "0");
+      return `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${wd}) ${hh}:${mm} ${currentTzName}`;
+    }
+
+    function fmtRemain(ms) {
+      const m = Math.max(0, Math.floor(ms / 60000));
+      const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
+      if (d > 0) return `${d}일 ${h}시간`;
+      if (h > 0) return `${h}시간 ${mi}분`;
+      return `${mi}분`;
+    }
+
+    function shotChecked(id, idx) {
+      try { return localStorage.getItem(`pnc_shot_${id}_${idx}`) === "1"; } catch (e) { return false; }
+    }
+    function toggleShotCheck(id, idx, el) {
+      try { localStorage.setItem(`pnc_shot_${id}_${idx}`, el.checked ? "1" : "0"); } catch (e) {}
+    }
+
+    async function loadShotEvents() {
+      try {
+        const res = await fetch("events.json", { cache: "no-store" });
+        if (!res.ok) return;
+        shotData = await res.json();
+        renderShotEvents();
+      } catch (e) { /* events.json 없으면 패널 숨김 유지 */ }
+    }
+
+    function renderShotEvents() {
+      const panel = document.getElementById("shotPanel");
+      if (!shotData || !Array.isArray(shotData.events)) { panel.hidden = true; return; }
+      const now = Date.now();
+      const items = shotData.events.map(ev => ({
+        ev,
+        start: ev.start_at ? Date.parse(ev.start_at) : null,
+        end: ev.end_at ? Date.parse(ev.end_at) : null,
+      })).filter(x => (!x.end || x.end > now) && (!x.start || x.start <= now + 86400000))
+        .sort((a, b) => (a.end ?? Infinity) - (b.end ?? Infinity));
+
+      panel.hidden = false;
+      document.getElementById("shotUpdated").textContent =
+        shotData.updated_at ? `마지막 판독 ${fmtShotAt(Date.parse(shotData.updated_at))}` : "";
+
+      const list = document.getElementById("shotList");
+      if (!items.length) {
+        list.innerHTML = `<p class="shot-empty">지금 확인된 이벤트가 없어요. 새 이벤트 화면을 디스코드 스크린샷 채널에 올리면 30분 안에 여기에 떠요.</p>`;
+        return;
+      }
+
+      list.innerHTML = items.map(({ ev, start, end }) => {
+        const upcoming = start && start > now;
+        const ending = !upcoming && end && end - now < 6 * 3600000;
+        const low = ev.confidence === "low";
+        const evId = String(ev.id || "").replace(/[^a-zA-Z0-9]/g, "");
+        let timeLine = "마감 시각 미확인";
+        if (upcoming) timeLine = `⏳ ${fmtShotAt(start)} 시작 (${fmtRemain(start - now)} 후)`;
+        else if (end) timeLine = `⏰ ${fmtShotAt(end)} 마감 · ${fmtRemain(end - now)} 남음`;
+
+        const actions = (ev.actions || []).map((a, i) => `
+          <li><label><input type="checkbox" ${shotChecked(evId, i) ? "checked" : ""}
+            onchange="toggleShotCheck('${evId}', ${i}, this)"><span>${escHtml(a)}</span></label></li>`).join("");
+        const rules = (ev.point_rules || []).map(r =>
+          `<tr><td>${escHtml(r.task)}</td><td>${escHtml(r.points)}</td></tr>`).join("");
+
+        return `
+          <article class="shot-card ${ending ? "ending" : ""} ${upcoming ? "upcoming" : ""}">
+            <div class="shot-title">${escHtml(ev.name)}
+              <span class="shot-chip">${escHtml(SHOT_CAT[ev.category] || ev.category || "기타")}</span>
+              ${low ? '<span class="shot-chip low">불확실</span>' : ""}
+            </div>
+            <div class="shot-time">${timeLine}</div>
+            ${ev.summary ? `<div class="shot-summary">${escHtml(ev.summary)}</div>` : ""}
+            ${(ev.save_items || []).length ? `<div class="shot-warn">🚫 아끼기: ${ev.save_items.map(escHtml).join(", ")}</div>` : ""}
+            ${ev.needs_check ? `<div class="shot-check">❓ 확인 필요: ${escHtml(ev.needs_check)}</div>` : ""}
+            ${actions ? `<ul class="shot-actions">${actions}</ul>` : ""}
+            ${rules || ev.rewards || ev.time_basis ? `<details><summary>점수표 · 보상 · 근거</summary>
+              ${rules ? `<table class="shot-rules">${rules}</table>` : ""}
+              ${ev.rewards ? `<p style="margin-top:6px;">🎁 ${escHtml(ev.rewards)}</p>` : ""}
+              ${ev.time_basis ? `<p style="margin-top:6px;">🕒 화면 근거: ${escHtml(ev.time_basis)}</p>` : ""}
+            </details>` : ""}
+          </article>`;
+      }).join("");
+    }
+
     // 초기 실행
     render();
-    setInterval(render, 60000);
+    loadShotEvents();
+    setInterval(() => { render(); renderShotEvents(); }, 60000);
+    setInterval(loadShotEvents, 10 * 60000);
   </script>
 </body>
 </html>
