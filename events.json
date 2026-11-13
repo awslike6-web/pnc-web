@@ -1,36 +1,6 @@
 {
-  "updated_at": "2026-11-12T03:59+09:00",
+  "updated_at": "2026-11-14T03:37+09:00",
   "events": [
-    {
-      "name": "호크룩스",
-      "category": "personal",
-      "start_at": null,
-      "end_at": "2026-11-13T09:00+09:00",
-      "time_basis": "남은 시간:2일 12:25:29",
-      "summary": "혼기 및 혼기 재료를 획득하여 포인트를 쌓는 이벤트",
-      "actions": [
-        "혼기 획득",
-        "혼기 재료 획득"
-      ],
-      "save_items": [],
-      "point_rules": [
-        {
-          "task": "혼기 획득",
-          "points": "화면 세부 미표시"
-        },
-        {
-          "task": "혼기 재료 획득",
-          "points": "화면 세부 미표시"
-        }
-      ],
-      "rewards": "가속 아이템, 혼기 관련 재료 및 상자",
-      "confidence": "high",
-      "needs_check": "",
-      "id": "5184325366",
-      "first_seen_at": "2026-11-10T20:40+09:00",
-      "last_seen_at": "2026-11-10T20:40+09:00",
-      "shots": 1
-    },
     {
       "name": "연맹 시련",
       "category": "alliance",
