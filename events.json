@@ -1,27 +1,4 @@
 {
-  "updated_at": "2026-11-14T03:37+09:00",
-  "events": [
-    {
-      "name": "연맹 시련",
-      "category": "alliance",
-      "start_at": null,
-      "end_at": null,
-      "time_basis": "",
-      "summary": "요새 근처에 출현한 변이 몬스터를 매일 3회 도전하는 연맹 이벤트",
-      "actions": [
-        "Lv.2 이상 연맹 맹주/간부의 이벤트 오픈",
-        "요새 Lv.12 이상 달성 후 참여",
-        "매일 무료 3회 즉시 도전 진행"
-      ],
-      "save_items": [],
-      "point_rules": [],
-      "rewards": "도전 포인트 보상, 개별/연맹 누적 포인트 보상",
-      "confidence": "high",
-      "needs_check": "남은 이벤트 기간/시간이 화면에 표시되지 않음",
-      "id": "6769d2c42b",
-      "first_seen_at": "2026-11-10T20:40+09:00",
-      "last_seen_at": "2026-11-10T20:40+09:00",
-      "shots": 1
-    }
-  ]
+  "updated_at": "2026-11-17T07:39+09:00",
+  "events": []
 }
